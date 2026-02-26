@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<canvas id="particles"></canvas>
+
+<div class="dashboard-page">
+
+    <aside class="sidebar">
+        <div class="sidebar-title">{{ bank_name }}</div>
+        <ul class="sidebar-menu">
+            <li><a href="#" class="active"><i class="fas fa-user"></i> Profile</a></li>
+            <li><a href="#"><i class="fas fa-arrow-up-right-from-square"></i> Money Transfer</a></li>
+            <li><a href="#"><i class="fas fa-coins"></i> Loans</a></li>
+            <li><a href="#"><i class="fas fa-chart-line"></i> Transaction History</a></li>
+            <li><a href="#"><i class="fas fa-credit-card"></i> Virtual Cards</a></li>
+            <li><a href="#"><i class="fas fa-file-invoice"></i> Bill Payments</a></li>
+            <li><a href="/logout"><i class="fas fa-lock"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="dashboard-main">
+
+        <section class="top-cards">
+
+            <div class="premium-card">
+                <div class="card-balance" id="liveBalance">$0</div>
+            </div>
+
+            <div class="credit-score-card">
+                <h3>Credit Score</h3>
+                <div class="score-circle" id="scoreCircle">
+                    <span id="scoreValue">0</span>
+                </div>
+                <div id="scoreLabel"></div>
+            </div>
+
+        </section>
+
+        <section class="middle-cards">
+
+            <div class="glass-card chart-container">
+                <h3>Spending Overview</h3>
+                <canvas id="financeChart"></canvas>
+            </div>
+
+            <div class="glass-card insights-card">
+                <h3>AI Financial Insights</h3>
+                <ul id="insightsList"></ul>
+            </div>
+
+        </section>
+
+        <section class="transactions-section glass-card">
+            <h3>Transactions</h3>
+            <table id="transactionTable">
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                </tr>
+
+                {% for tx in transactions %}
+                <tr>
+                    <td>{{ tx.created_at.strftime("%Y-%m-%d") }}</td>
+                    <td>{{ tx.description }}</td>
+                    <td class="{{ 'income' if tx.amount > 0 else 'expense' }}">
+                        {{ tx.amount }}
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </table>
+        </section>
+
+    </main>
+</div>
+
+<div class="fab" onclick="showQuickMenu()">
+    +
+</div>
+
+<div id="notificationContainer"></div>
+
+<script>
+    const transactionsData = [
+        {% for tx in transactions %}
+        {
+            amount: {{ tx.amount }},
+            date: "{{ tx.created_at.strftime('%Y-%m-%d') }}",
+            description: "{{ tx.description }}"
+        },
+        {% endfor %}
+    ];
+</script>
+
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,229 @@
+/* ================= GLOBAL RESET ================= */
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", sans-serif;
+    min-height: 100vh;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+
+/* ================= DESIGN SYSTEM ================= */
+
+:root {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --bg-navbar: #bcc0c6;
+
+    --text-main: #ffffff;
+    --text-muted: #94a3b8;
+
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+
+    --border-light: rgba(255,255,255,0.08);
+}
+
+/* Light Mode */
+body.light-mode {
+    --bg-main: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-navbar: #e5e7eb;
+
+    --text-main: #111827;
+    --text-muted: #4b5563;
+
+    --border-light: rgba(0,0,0,0.05);
+}
+
+body {
+    background: var(--bg-main);
+    color: var(--text-main);
+}
+
+
+/* ================= NAVBAR ================= */
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 60px;
+    background: var(--bg-navbar);
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.logo {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #350303;
+}
+
+.nav-links a {
+    margin-left: 25px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+.nav-links a:hover {
+    opacity: 0.7;
+}
+
+
+/* ================= PAGE TRANSITION ================= */
+
+.page-transition {
+    transition: opacity 0.3s ease;
+}
+
+.page-transition.fade-out {
+    opacity: 0;
+}
+
+
+/* ================= GLOBAL ANIMATIONS ================= */
+
+.fade-in {
+    opacity: 0;
+    animation: fadeIn 0.8s forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+.slide-up {
+    opacity: 0;
+    transform: translateY(40px);
+    animation: slideUp 0.7s forwards ease;
+}
+
+@keyframes slideUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.zoom-in {
+    opacity: 0;
+    transform: scale(0.9);
+    animation: zoomIn 0.6s forwards ease;
+}
+
+@keyframes zoomIn {
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+/* ================= RIPPLE EFFECT SYSTEM ================= */
+
+.ripple-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple-btn span.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    background: rgba(255, 255, 255, 0.4);
+    animation: ripple-effect 600ms linear;
+}
+
+@keyframes ripple-effect {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+
+/* ================= UTILITIES ================= */
+
+.glass {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+}
+
+.card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--border-light);
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+/* ================= NAVBAR ================= */
+
+.main-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 18px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    z-index: 1000;
+}
+
+.brand {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-decoration: none;
+    color: #000;
+}
+
+.nav-right a {
+    margin-left: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    color: #000;
+    transition: 0.3s ease;
+}
+
+.nav-right a:hover {
+    opacity: 0.6;
+}
+
+.nav-btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    background: #000;
+    color: #fff !important;
+}
+
+.nav-btn:hover {
+    opacity: 0.8;
+}
+
+body.has-navbar {
+    padding-top: 80px;
+}

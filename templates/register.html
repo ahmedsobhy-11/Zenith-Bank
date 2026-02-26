@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Register | Zenith{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="auth-page">
+
+    <!-- Toast -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="auth-logo">ZENITH</div>
+
+    <div class="auth-wrapper">
+        <div class="auth-card">
+
+            <h2>Create Account</h2>
+
+            <form method="POST" action="{{ url_for('register') }}">
+
+                <input type="text" name="full_name" placeholder="Full Name" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+
+                <button type="submit" class="ripple-btn">
+                    Register
+                </button>
+
+            </form>
+
+            <p class="auth-link">
+                Already have an account?
+                <a href="{{ url_for('login') }}">Login</a>
+            </p>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

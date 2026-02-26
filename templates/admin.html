@@ -1,0 +1,26 @@
+<div class="admin-analytics fade-in">
+
+    <h2 class="admin-title">Admin Analytics</h2>
+
+    <div class="admin-grid">
+
+        <div class="admin-card glow-border">
+            <span class="admin-label">Total Users</span>
+            <h3 class="admin-value">{{ "{:,}".format(total_users) }}</h3>
+        </div>
+
+        <div class="admin-card glow-border">
+            <span class="admin-label">Total Transactions</span>
+            <h3 class="admin-value">{{ "{:,}".format(total_transactions) }}</h3>
+        </div>
+
+        <div class="admin-card glow-border">
+            <span class="admin-label">Total System Balance</span>
+            <h3 class="admin-value">
+                ${{ "{:,}".format(total_balance) }}
+            </h3>
+        </div>
+
+    </div>
+
+</div>

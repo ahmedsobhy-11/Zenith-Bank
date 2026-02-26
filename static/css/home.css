@@ -1,0 +1,106 @@
+/* ================= HERO SECTION ================= */
+
+.hero {
+    position: relative;
+    width: 100%;
+    height: 100vh; 
+    
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+
+    background: url("/static/images/zenith.png") no-repeat center center;
+    background-size: cover;
+
+    overflow: hidden;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.6),
+        rgba(0,0,0,0.2),
+        transparent
+    );
+    z-index: 1;
+}
+
+/* Text Container */
+.hero-text {
+    position: relative;
+    z-index: 2;
+    margin-bottom: 180px; 
+    text-align: center;
+    padding-bottom: 60px;
+}
+
+/* Title */
+.hero-text h1 {
+    font-size: 72px;
+    font-weight: 800;
+    letter-spacing: 10px;
+    margin-bottom: 15px;
+
+    color: #4f513fd2;
+
+    animation: glowMove 3s ease-in-out infinite;
+}
+
+/* Subtitle */
+.hero-text p {
+    font-size: 14px;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+    color: var(--text-muted);
+}
+
+/* Glow Animation */
+@keyframes glowMove {
+    0%,100% {
+        text-shadow: 0 0 10px rgba(28, 1, 1, 0.806);
+    }
+    50% {
+        text-shadow: 0 0 35px rgba(42, 2, 2, 0.863);
+    }
+}
+
+/* ================= LIGHT MODE FIX ================= */
+
+body.light-mode .hero::before {
+    background: linear-gradient(
+        to top,
+        rgba(255,255,255,0.6),
+        rgba(255,255,255,0.3),
+        transparent
+    );
+}
+
+body.light-mode .hero-text h1 {
+    color: #111;
+}
+
+body.light-mode .hero-text p {
+    color: #444;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+    .hero-text h1 {
+        font-size: 42px;
+        letter-spacing: 5px;
+    }
+
+    .hero-text p {
+        font-size: 12px;
+        letter-spacing: 2px;
+    }
+}

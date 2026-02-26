@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Zenith Bank - Next Generation Digital Banking Platform">
+
+    <title>{% block title %}Zenith Bank{% endblock %}</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Core Base CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+
+    {% block page_css %}{% endblock %}
+</head>
+
+<body class="page-transition fade-in {% if request.endpoint == 'home' %}has-navbar{% endif %}">
+
+{% if request.endpoint == 'home' %}
+<nav class="main-navbar">
+    <div class="nav-left">
+        <a href="/" class="brand">ZENITH</a>
+    </div>
+    <div class="nav-right">
+        <a href="/login">Login</a>
+        <a href="/register" class="nav-btn">Register</a>
+    </div>
+</nav>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+{% block page_js %}{% endblock %}
+
+</body>
+</html>

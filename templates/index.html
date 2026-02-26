@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Home | Zenith Bank{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+    <div class="hero-text fade-in">
+        <h1>ZENITH</h1>
+        <p>EMPOWERING YOUR FINANCIAL FUTURE</p>
+        <span>OCTOBER 27, 2025</span>
+    </div>
+</section>
+
+{% endblock %}
