@@ -2,4 +2,5 @@ Flask
 Flask-SQLAlchemy
 Flask-Bcrypt
 Flask-JWT-Extended
+Flask-Migrate
 psycopg2-binary

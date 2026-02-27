@@ -11,7 +11,7 @@ class Config:
     # =========================
     # Database
     # =========================
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:1142003@localhost:5432/zenithdb"
+    SQLALCHEMY_DATABASE_URI = "postgresql://Mark:Mark05%40Postgres@localhost:5432/zenithdb"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # =========================
