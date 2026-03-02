@@ -12,9 +12,14 @@ from functools import wraps
 from time import time
 from flask_migrate import Migrate
 from decimal import Decimal
+import random
+import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 login_attempts = {}
 
@@ -73,7 +78,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        account = Account(balance=1000, user_id=new_user.id)
+        account = Account(balance=0, user_id=new_user.id)
         db.session.add(account)
         db.session.commit()
 
@@ -123,17 +128,44 @@ def login():
 
     return render_template("login.html")
 
-
-    return render_template("login.html", error="Invalid username or password")
-
-    return render_template("login.html")
-
 # -------- Logout --------
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/login")
+
+# -------- Profile --------
+
+@app.route("/profile", methods=["GET", "POST"])
+def profile():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user = db.session.get(User, session["user_id"])
+
+    if request.method == "POST":
+        # Vulnerability: Unrestricted File Upload & No Path Sanitization
+        if 'photo' in request.files:
+            file = request.files['photo']
+            if file.filename != '':
+                filename = file.filename
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                
+                try:
+                    file.save(filepath)
+                    user.profile_photo = filename
+                    db.session.commit()
+                    return redirect("/profile")
+                except Exception as e:
+                    print(f"UPLOAD ERROR: {e}")
+                    return render_template("profile.html", user=user, error="File upload failed.")
+
+    return render_template(
+        "profile.html",
+        user=user,
+        bank_name=Config.BANK_NAME
+    )
 
 # -------- Dashboard --------
 
@@ -171,7 +203,6 @@ def transfer():
     if request.method == "POST":
         target_username = request.form.get("target_username", "").strip()
         
-        # FIX: Cast to Decimal instead of float to prevent Python TypeErrors
         try:
             amount = Decimal(request.form.get("amount", "0"))
         except:
@@ -305,6 +336,77 @@ def loan():
         bank_name=Config.BANK_NAME
     )
 
+# -------- Virtual Cards --------
+
+@app.route("/virtual_cards", methods=["GET", "POST"])
+def virtual_cards():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user = db.session.get(User, session["user_id"])
+    accounts = Account.query.filter_by(user_id=user.id).all()
+    # Fetch existing cards to display
+    cards = VirtualCard.query.filter_by(user_id=user.id).all()
+
+    if request.method == "POST":
+        try:
+            amount = Decimal(request.form.get("amount", "0"))
+        except:
+            amount = Decimal('0')
+            
+        funding_source_id = request.form.get("funding_source")
+
+        try:
+            card_number = "".join([str(random.randint(0, 9)) for _ in range(16)])
+            cvv = "".join([str(random.randint(0, 9)) for _ in range(3)])
+
+            funding_account = db.session.get(Account, int(funding_source_id))
+            
+            funding_account.balance -= amount
+            
+            # Create the card
+            new_card = VirtualCard(
+                card_number=card_number,
+                cvv=cvv,
+                balance=amount,
+                user_id=user.id
+            )
+            
+            db.session.add(new_card)
+            db.session.flush() # Flush to get the new_card.id before committing
+            
+            tx_out = Transaction(
+                amount=-amount, 
+                transaction_type="Card Funding", 
+                description=f"Funded VCard {card_number[-4:]}", 
+                account_id=funding_account.id
+            )
+            
+            tx_in = Transaction(
+                amount=amount, 
+                transaction_type="Card Funded", 
+                description="Initial Deposit", 
+                virtual_card_id=new_card.id
+            )
+
+            db.session.add(tx_out)
+            db.session.add(tx_in)
+            db.session.commit()
+            
+            return redirect("/virtual_cards")
+
+        except Exception as e:
+            print(f"VCARD ERROR: {e}")
+            return render_template("virtual_cards.html", user=user, accounts=accounts, cards=cards, error="Card generation failed.")
+
+    return render_template(
+        "virtual_cards.html", 
+        user=user, 
+        accounts=accounts, 
+        cards=cards, 
+        bank_name=Config.BANK_NAME
+    )
+
 # -------- Transaction History --------
 
 @app.route("/history")
@@ -312,13 +414,20 @@ def history():
     if "user_id" not in session:
         return redirect("/login")
 
-    user = User.query.get(session["user_id"])
+    user = db.session.get(User, session["user_id"])
     accounts = Account.query.filter_by(user_id=user.id).all()
+    
+    # NEW: Fetch the user's virtual cards
+    virtual_cards = VirtualCard.query.filter_by(user_id=user.id).all()
 
-    # Gather all transactions linked to the user's primary accounts
+    # Gather all transactions linked to both accounts and virtual cards
     transactions = []
+    
     for acc in accounts:
         transactions.extend(acc.transactions)
+        
+    for card in virtual_cards:
+        transactions.extend(card.transactions)
         
     # Sort transactions chronologically (newest first)
     transactions.sort(key=lambda x: x.created_at, reverse=True)
@@ -327,6 +436,71 @@ def history():
         "history.html",
         user=user,
         transactions=transactions,
+        bank_name=Config.BANK_NAME
+    )
+
+# -------- Bill Payments --------
+
+@app.route("/bill_payments", methods=["GET", "POST"])
+def bill_payments():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user = db.session.get(User, session["user_id"])
+    accounts = Account.query.filter_by(user_id=user.id).all()
+    virtual_cards = VirtualCard.query.filter_by(user_id=user.id).all()
+
+    if request.method == "POST":
+        service = request.form.get("service")
+        service_number = request.form.get("service_number", "").strip()
+        funding_source = request.form.get("funding_source")
+
+        # Vulnerability 1: No bounds checking. Paying a negative bill ADDS money to the account!
+        try:
+            amount = Decimal(request.form.get("amount", "0"))
+        except:
+            amount = Decimal('0')
+
+        # Vulnerability 2: IDOR. The user can manipulate the funding_source to pay their bill using someone else's account.
+        try:
+            source_type, source_id = funding_source.split("_")
+            source_id = int(source_id)
+            
+            if source_type == "account":
+                sender_source = db.session.get(Account, source_id)
+                sender_source.balance -= amount
+                tx_out = Transaction(
+                    amount=-amount, 
+                    transaction_type="Bill Payment", 
+                    description=f"{service} Bill - #{service_number}", 
+                    account_id=source_id
+                )
+            elif source_type == "vcard":
+                sender_source = db.session.get(VirtualCard, source_id)
+                sender_source.balance -= amount
+                tx_out = Transaction(
+                    amount=-amount, 
+                    transaction_type="Bill Payment", 
+                    description=f"{service} Bill - #{service_number}", 
+                    virtual_card_id=source_id
+                )
+            else:
+                raise ValueError("Invalid source")
+
+            db.session.add(tx_out)
+            db.session.commit()
+            
+            return redirect("/history")
+
+        except Exception as e:
+            print(f"BILL PAYMENT ERROR: {e}")
+            return render_template("bill_payments.html", user=user, accounts=accounts, virtual_cards=virtual_cards, error="Payment processing failed.")
+
+    return render_template(
+        "bill_payments.html", 
+        user=user, 
+        accounts=accounts, 
+        virtual_cards=virtual_cards, 
         bank_name=Config.BANK_NAME
     )
 

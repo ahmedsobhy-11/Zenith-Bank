@@ -59,7 +59,7 @@ html, body {
     font-size: 14px;
     letter-spacing: 4px;
     margin-bottom: 10px;
-    color: var(--text-muted);
+    /* color: var(--text-muted); */
 }
 
 /* Glow Animation */

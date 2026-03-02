@@ -42,6 +42,12 @@ class User(db.Model):
         default=False,
         nullable=False
     )
+    
+    profile_photo = db.Column(
+        db.String(255),
+        nullable=True,
+        default="default.png"
+    )
 
     created_at = db.Column(
         db.DateTime,
@@ -70,7 +76,7 @@ class Account(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     balance = db.Column(
-        Numeric(12, 2),   # ✅ Safe for money
+        Numeric(12, 2),
         default=0.00,
         nullable=False
     )
@@ -130,9 +136,9 @@ class Transaction(db.Model):
         nullable=True  # Made nullable so virtual cards can act independently
     )
 
-    # Preparation for the Virtual Card feature
     virtual_card_id = db.Column(
         db.Integer,
+        db.ForeignKey("virtual_cards.id", ondelete="CASCADE"), # <--- ADDED THIS LINE
         nullable=True  
     )
 
@@ -182,6 +188,13 @@ class VirtualCard(db.Model):
         db.DateTime,
         default=datetime.utcnow,
         nullable=False
+    )
+
+    transactions = db.relationship(
+        "Transaction",
+        backref="virtual_card",
+        cascade="all, delete-orphan",
+        lazy=True
     )
 
     def __repr__(self):

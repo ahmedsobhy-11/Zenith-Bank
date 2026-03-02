@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Virtual Cards | Zenith{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .vcard-container {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+    }
+
+    .vcard-form-wrapper {
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 16px;
+        padding: 30px;
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid var(--border-light);
+    }
+
+    .vcard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 25px;
+    }
+
+    /* Stylized Credit Card */
+    .credit-card {
+        background: linear-gradient(135deg, #1e3a8a, #3b82f6, #0f172a);
+        border-radius: 20px;
+        padding: 25px;
+        color: white;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        position: relative;
+        overflow: hidden;
+        min-height: 190px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .credit-card::after {
+        content: '';
+        position: absolute;
+        top: -50%; right: -50%;
+        width: 200px; height: 200px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+
+    .cc-logo { font-size: 20px; font-weight: 800; font-style: italic; }
+    .cc-number { font-size: 22px; letter-spacing: 3px; margin-top: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+    .cc-bottom { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; }
+    .cc-label { font-size: 10px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 3px;}
+    .cc-value { font-size: 16px; font-weight: 600; }
+    
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 14px; }
+    .form-control {
+        width: 100%; padding: 14px; border-radius: 10px;
+        border: 1px solid var(--border-light);
+        background: rgba(255,255,255,0.05); color: var(--text-main); outline: none;
+    }
+    .form-control option { background: var(--bg-card); color: var(--text-main); }
+    
+    .btn-submit {
+        padding: 12px 24px; border-radius: 10px; border: none;
+        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+        color: white; font-weight: 600; cursor: pointer; transition: 0.3s ease;
+    }
+    .btn-submit:hover { box-shadow: 0 10px 25px rgba(59,130,246,0.4); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+    <aside class="sidebar">
+        <div class="sidebar-title">{{ bank_name }}</div>
+        <ul class="sidebar-menu">
+            <li><a href="/profile"><i class="fas fa-user"></i> My Profile</a></li>
+            <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/transfer"><i class="fas fa-arrow-up-right-from-square"></i> Money Transfer</a></li>
+            <li><a href="/loan"><i class="fas fa-coins"></i> Loans</a></li>
+            <li><a href="/history"><i class="fas fa-chart-line"></i> Transaction History</a></li>
+            <li><a href="/virtual_cards" class="active"><i class="fas fa-credit-card"></i> Virtual Cards</a></li>
+            <li><a href="/bill_payments"><i class="fas fa-file-invoice"></i> Bill Payments</a></li>
+            <li><a href="/logout"><i class="fas fa-lock"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="dashboard-main vcard-container fade-in">
+        
+        <div>
+            <h2 style="margin-bottom: 20px;">Your Virtual Cards</h2>
+            <div class="vcard-grid">
+                {% for card in cards %}
+                <div class="credit-card">
+                    <div class="cc-logo">ZENITH V-CARD</div>
+                    <div class="cc-number">
+                        {{ card.card_number[:4] }} {{ card.card_number[4:8] }} {{ card.card_number[8:12] }} {{ card.card_number[12:] }}
+                    </div>
+                    <div class="cc-bottom">
+                        <div>
+                            <div class="cc-label">Available Balance</div>
+                            <div class="cc-value">${{ card.balance }}</div>
+                        </div>
+                        <div>
+                            <div class="cc-label">CVV</div>
+                            <div class="cc-value">{{ card.cvv }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted">You have no active virtual cards.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="vcard-form-wrapper">
+            <h3 style="margin-bottom: 15px;">Generate New Card</h3>
+            {% if error %} <div style="color: #ef4444; margin-bottom: 15px;">{{ error }}</div> {% endif %}
+            
+            <form method="POST" action="/virtual_cards" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                    <label>Funding Account</label>
+                    <select name="funding_source" class="form-control" required>
+                        {% for acc in accounts %}
+                        <option value="{{ acc.id }}">Account #{{ acc.id }} (Bal: ${{ acc.balance }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                    <label>Initial Deposit (USD)</label>
+                    <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Generate Card</button>
+            </form>
+        </div>
+
+    </main>
+</div>
+{% endblock %}

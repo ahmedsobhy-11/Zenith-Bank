@@ -9,19 +9,18 @@
 
 {% block content %}
 
-<canvas id="particles"></canvas>
-
 <div class="dashboard-page">
 
     <aside class="sidebar">
         <div class="sidebar-title">{{ bank_name }}</div>
         <ul class="sidebar-menu">
-            <li><a href="/dashboard" class="active"><i class="fas fa-user"></i> Profile</a></li>
+            <li><a href="/profile"><i class="fas fa-user"></i> My Profile</a></li>
+            <li><a href="/dashboard" class="active"><i class="fas fa-home"></i> Dashboard</a></li>
             <li><a href="/transfer"><i class="fas fa-arrow-up-right-from-square"></i> Money Transfer</a></li>
             <li><a href="/loan"><i class="fas fa-coins"></i> Loans</a></li>
             <li><a href="/history"><i class="fas fa-chart-line"></i> Transaction History</a></li>
-            <li><a href="#"><i class="fas fa-credit-card"></i> Virtual Cards</a></li>
-            <li><a href="#"><i class="fas fa-file-invoice"></i> Bill Payments</a></li>
+            <li><a href="/virtual_cards"><i class="fas fa-credit-card"></i> Virtual Cards</a></li>
+            <li><a href="/bill_payments"><i class="fas fa-file-invoice"></i> Bill Payments</a></li>
             <li><a href="/logout"><i class="fas fa-lock"></i> Logout</a></li>
         </ul>
     </aside>
