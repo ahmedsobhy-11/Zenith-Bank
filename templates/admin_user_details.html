@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Inspect User | Zenith Secure{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .admin-container { padding: 40px; display: flex; flex-direction: column; gap: 30px; }
+    
+    .admin-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .user-profile-card {
+        display: flex; gap: 20px; align-items: center;
+    }
+
+    .profile-photo {
+        width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);
+    }
+
+    .action-panel {
+        display: flex; gap: 10px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .btn-action {
+        padding: 8px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer;
+        font-size: 13px; transition: 0.2s; display: flex; align-items: center; gap: 8px;
+    }
+
+    .btn-suspend { background: #f59e0b; color: white; }
+    .btn-suspend:hover { background: #d97706; }
+    
+    .btn-reactivate { background: #10b981; color: white; }
+    .btn-reactivate:hover { background: #059669; }
+
+    .btn-reset { background: #3b82f6; color: white; }
+    .btn-reset:hover { background: #2563eb; }
+
+    .btn-delete { background: #ef4444; color: white; }
+    .btn-delete:hover { background: #dc2626; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+
+    .data-section {
+        background: rgba(255, 255, 255, 0.04); border-radius: 12px; padding: 25px;
+        border: 1px solid rgba(255,255,255,0.08); overflow-x: auto;
+    }
+
+    .data-section h3 { margin-bottom: 15px; color: var(--primary); font-size: 16px; text-transform: uppercase; }
+
+    .data-list { list-style: none; }
+    .data-list li {
+        display: flex; justify-content: space-between; padding: 12px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px;
+    }
+    .data-list li:last-child { border-bottom: none; }
+
+    .tx-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tx-table th { text-align: left; padding: 10px; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .tx-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    
+    .amount-pos { color: #4ade80; font-weight: bold; }
+    .amount-neg { color: #f87171; font-weight: bold; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+    <aside class="sidebar" style="background: linear-gradient(180deg, #0f172a, #1e293b);">
+        <div class="sidebar-title">ZENITH SECURE</div>
+        <ul class="sidebar-menu">
+            <li><a href="/profile"><i class="fas fa-user-shield"></i> Admin Profile</a></li>
+            <li><a href="/admin"><i class="fas fa-shield-halved"></i> Dashboard </a></li>
+            <li><a href="/admin/users" class="active"><i class="fas fa-users"></i> Users Data</a></li>
+            <li><a href="/admin/transactions"><i class="fas fa-list"></i> Transactions Data</a></li>
+            <li style="margin-top: 40px;"><a href="/logout"><i class="fas fa-arrow-left"></i> Secure Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="dashboard-main admin-container fade-in">
+        <a href="/admin/users" style="color: var(--text-muted); text-decoration: none; font-size: 14px;">
+            <i class="fas fa-arrow-left"></i> Back to Directory
+        </a>
+
+        <div class="admin-header">
+            <div class="user-profile-card">
+                {% if target.profile_photo %}
+                <img src="{{ url_for('static', filename='uploads/' + target.profile_photo) }}" class="profile-photo" onerror="this.src='https://via.placeholder.px/80';">
+                {% else %}
+                <div class="profile-photo" style="display:flex; justify-content:center; align-items:center; font-size:30px; color:#555; background: #222;">
+                    <i class="fas fa-user"></i>
+                </div>
+                {% endif %}
+                
+                <div>
+                    <h2 style="margin-bottom: 5px;">{{ target.username }} 
+                        {% if target.is_suspended %}
+                        <span style="font-size: 12px; background: #f87171; color: white; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 10px;">SUSPENDED</span>
+                        {% endif %}
+                    </h2>
+                    <p class="text-muted">{{ target.email }} | ID: #{{ target.id }}</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Joined: {{ target.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</p>
+                </div>
+            </div>
+
+            <div class="action-panel">
+                <form method="POST" action="/admin/user/{{ target.id }}/suspend" style="margin:0;">
+                    {% if target.is_suspended %}
+                    <button type="submit" class="btn-action btn-reactivate" onclick="return confirm('Reactivate this account?');"><i class="fas fa-check"></i> Reactivate</button>
+                    {% else %}
+                    <button type="submit" class="btn-action btn-suspend" onclick="return confirm('Suspend this account? All transactions will be blocked.');"><i class="fas fa-ban"></i> Suspend</button>
+                    {% endif %}
+                </form>
+                
+                <form method="POST" action="/admin/user/{{ target.id }}/reset_password" style="margin:0;">
+                    <button type="submit" class="btn-action btn-reset" onclick="return confirm('Force reset password to default (ZenithReset123!)?');"><i class="fas fa-key"></i> Reset Password</button>
+                </form>
+
+                <form method="POST" action="/admin/user/{{ target.id }}/delete" style="margin:0;">
+                    <button type="submit" class="btn-action btn-delete" onclick="return confirm('WARNING: Permanently delete user? Ensure balance is strictly zero.');"><i class="fas fa-trash"></i> Delete User</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="data-section">
+                <h3>Main Accounts</h3>
+                <ul class="data-list">
+                    {% for acc in accounts %}
+                    <li>
+                        <span>Account #{{ acc.id }}</span>
+                        <strong>${{ acc.balance }}</strong>
+                    </li>
+                    {% else %}
+                    <li><span class="text-muted">No main accounts found.</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="data-section">
+                <h3>Virtual Cards</h3>
+                <ul class="data-list">
+                    {% for card in virtual_cards %}
+                    <li>
+                        <span>Card ending in {{ card.card_number[-4:] }}</span>
+                        <strong>${{ card.balance }}</strong>
+                    </li>
+                    {% else %}
+                    <li><span class="text-muted">No virtual cards issued.</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h3>Complete Financial Footprint</h3>
+            <table class="tx-table">
+                <thead>
+                    <tr>
+                        <th>Date & Time (UTC)</th>
+                        <th>Transaction Type</th>
+                        <th>Source ID</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transactions %}
+                    <tr>
+                        <td style="color: var(--text-muted);">{{ tx.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+                        <td>{{ tx.transaction_type }}</td>
+                        <td>
+                            {% if tx.account_id %}ACC-{{ tx.account_id }}{% endif %}
+                            {% if tx.virtual_card_id %}VCARD-{{ tx.virtual_card_id }}{% endif %}
+                        </td>
+                        <td>{{ tx.description }}</td>
+                        <td class="{{ 'amount-pos' if tx.amount > 0 else 'amount-neg' }}">
+                            {% if tx.amount > 0 %}+{% endif %}${{ tx.amount|string|replace('-', '') }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align: center; padding: 20px;">No transactions recorded.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+{% endblock %}

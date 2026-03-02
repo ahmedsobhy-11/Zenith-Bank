@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}User Directory | Zenith Secure{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .admin-container { padding: 40px; display: flex; flex-direction: column; gap: 30px; }
+    
+    .admin-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .search-bar-container {
+        background: rgba(255, 255, 255, 0.04); border-radius: 12px; padding: 20px;
+        border: 1px solid rgba(255,255,255,0.08); display: flex; gap: 15px; align-items: center;
+    }
+
+    .search-input {
+        flex: 1; padding: 12px 20px; border-radius: 8px; border: 1px solid var(--border-light);
+        background: rgba(0,0,0,0.2); color: white; font-size: 15px; outline: none;
+    }
+
+    .search-input:focus { border-color: var(--primary); }
+
+    .btn-search {
+        padding: 12px 25px; border-radius: 8px; border: none; background: var(--primary);
+        color: white; font-weight: bold; cursor: pointer; transition: 0.3s;
+    }
+    .btn-search:hover { background: var(--primary-hover); }
+
+    .data-section {
+        background: rgba(255, 255, 255, 0.04); border-radius: 12px; padding: 25px;
+        border: 1px solid rgba(255,255,255,0.08); overflow-x: auto;
+    }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .data-table th { text-align: left; padding: 12px; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.1); text-transform: uppercase; font-size: 12px;}
+    .data-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #e2e8f0; vertical-align: middle; }
+    .data-table tr:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
+
+    .status-active { color: #4ade80; font-weight: bold; font-size: 12px; }
+    .status-suspended { color: #f87171; font-weight: bold; font-size: 12px; }
+    
+    .view-btn {
+        padding: 6px 12px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white;
+        text-decoration: none; font-size: 12px; transition: 0.3s;
+    }
+    .view-btn:hover { background: rgba(255,255,255,0.2); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+    <aside class="sidebar" style="background: linear-gradient(180deg, #0f172a, #1e293b);">
+        <div class="sidebar-title">ZENITH SECURE</div>
+        <ul class="sidebar-menu">
+            <li><a href="/profile"><i class="fas fa-user-shield"></i> Admin Profile</a></li>
+            <li><a href="/admin"><i class="fas fa-shield-halved"></i> Dashboard </a></li>
+            <li><a href="/admin/users" class="active"><i class="fas fa-users"></i> Users Data</a></li>
+            <li><a href="/admin/transactions"><i class="fas fa-list"></i> Transactions Data</a></li>
+            <li style="margin-top: 40px;"><a href="/logout"><i class="fas fa-arrow-left"></i> Secure Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="dashboard-main admin-container fade-in">
+        <div class="admin-header">
+            <div>
+                <h2>User Directory</h2>
+                <p class="text-muted">Search and manage registered identities.</p>
+            </div>
+        </div>
+
+        <form method="GET" action="/admin/users" class="search-bar-container">
+            <i class="fas fa-search text-muted" style="font-size: 18px;"></i>
+            <input type="text" name="search" class="search-input" placeholder="Search by username, email, or creation date (YYYY-MM-DD)..." value="{{ request.args.get('search', '') }}">
+            <button type="submit" class="btn-search">Search Directory</button>
+            <a href="/admin/users" class="view-btn" style="padding: 12px 20px;">Clear</a>
+        </form>
+
+        <div class="data-section">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Account Status</th>
+                        <th>Joined Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in target_users %}
+                    <tr onclick="window.location='/admin/user/{{ u.id }}'">
+                        <td><strong>#{{ u.id }}</strong></td>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>
+                            {% if u.is_suspended %}
+                            <span class="status-suspended"><i class="fas fa-ban"></i> SUSPENDED</span>
+                            {% else %}
+                            <span class="status-active"><i class="fas fa-check-circle"></i> ACTIVE</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: var(--text-muted);">{{ u.created_at.strftime("%Y-%m-%d") }}</td>
+                        <td><a href="/admin/user/{{ u.id }}" class="view-btn">Inspect</a></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" style="text-align: center; padding: 30px;">No users found matching the criteria.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+{% endblock %}

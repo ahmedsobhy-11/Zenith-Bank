@@ -43,6 +43,15 @@ class User(db.Model):
         nullable=False
     )
     
+    # NEW: Flag to control account suspension
+    # NEW: Flag to control account suspension
+    is_suspended = db.Column(
+        db.Boolean,
+        default=False,
+        server_default="false",
+        nullable=False
+    )
+
     profile_photo = db.Column(
         db.String(255),
         nullable=True,
@@ -229,3 +238,44 @@ class Loan(db.Model):
 
     def __repr__(self):
         return f"<Loan {self.amount} - User {self.user_id}>"
+    
+    
+# =========================
+# ACTIVITY LOG MODEL
+# =========================
+
+class ActivityLog(db.Model):
+    __tablename__ = "activity_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=True
+    )
+
+    action = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    ip_address = db.Column(
+        db.String(50)
+    )
+
+    # Vulnerability: Storing unsanitized client-provided headers
+    user_agent = db.Column(
+        db.String(255)
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+    user = db.relationship("User", backref="activities")
+
+    def __repr__(self):
+        return f"<ActivityLog {self.action} by User {self.user_id}>"
